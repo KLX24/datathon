@@ -1,0 +1,51 @@
+#decision tree model to predict Sales..Domestic.Ultimate.Total.USD. using Year.Found, Employees (Global Ultimate Total)and Sales (Global Ultimate Total USD).
+
+set.seed(100)
+library(rpart)
+library(rpart.plot)
+
+data <- read.csv("catA_train.csv")
+data <- data[, c( 9, 19, 20, 21)]
+
+#clear entries with missing data from dataset
+data <- na.omit(data)
+
+
+
+tree_model<- rpart(Sales..Domestic.Ultimate.Total.USD.  ~ .,
++           method ="class",
++           data = data,
++           control = rpart.control(minsplit = 4),
++           parms = list(split ='information'))
+
+#plot decision tree (Fig. 1)
+rpart.plot(tree_model , type =4, extra =2, clip.right.labs = FALSE , varlen =0, faclen =0)
+
+
+
+
+#Linear regression model
+train_index <- sample(1:nrow(data), 0.8 * nrow(data))
+train_data <- data[train_index, ]
+test_data <- data[-train_index, ]
+
+sales_model <- lm(Sales..Domestic.Ultimate.Total.USD. ~ Sales..Global.Ultimate.Total.USD. + Year.Found + Employees..Global.Ultimate.Total. ) 
+predictions <- predict(sales_model, newdata = test_data)
+
+mse <- mean((test_data$Sales..Domestic.Ultimate.Total.USD. - predictions)^2)
+cat('Mean Squared Error on Test Set:', mse, '\n')
+Mean Squared Error on Test Set: 5.884931e+19
+
+#Plot scatterplot of Year Found against Domestic Sales linear regression model (Fig. 2)
+plot(test_data$Year.Found, test_data$Sales..Domestic.Ultimate.Total.USD., main = "Year Found Scatterplot with Regression Line")
+abline(sales_model, col = "blue")
+
+
+
+#Plot scatterplot of Global Sales against Domestic Sales linear regression model (Fig. 3)
+plot(test_data$Sales..Global.Ultimate.Total.USD., test_data$Sales..Domestic.Ultimate.Total.USD., main = "Global Sales Scatterplot with Regression Line")
+abline(sales_model, col = "blue")
+
+#Plot scatterplot of Global Total Employees against Domestic Sales linear regression model (Fig. 4)
+plot(test_data$Employees..Global.Ultimate.Total., test_data$Sales..Domestic.Ultimate.Total.USD., main = "Global Total Employees Scatterplot with Regression Line")
+abline(sales_model, col = "blue")
